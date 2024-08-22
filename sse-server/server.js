@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const fs = require('fs');
 
 const app = express();
 
@@ -42,6 +43,7 @@ function eventsHandler(request, response, next) {
       id: clientId,
       response
     };
+
     clientMap.set(clientId, newClient);
     clients.push(newClient);
   
@@ -50,6 +52,21 @@ function eventsHandler(request, response, next) {
       clientMap.delete(clientId);
       clients = clients.filter(client => client.id !== clientId);
     });
+
+    const filename = `Test_${clientId}.log`;
+    const path = `./${filename}`;
+    //if file does not exists, create it
+    if (!fs.existsSync(path)) {
+        // fs.writeFileSync(path, '{"info":"Show 1","source":"Anas"}');
+    }
+    //add contents to the end of the file in a newline
+// fs.writeFileSync
+
+    // fs.appendFileSync(path, `\r\n{"info":"Show 1","source":"Anas"}`);
+    // fs.appendFileSync(path, `\r\n{"info":"Show 2","source":"Anas"}`);
+    // fs.appendFileSync(path, `\r\n{"info":"Show 3","source":"Anas"}`);
+
+    tailFile(clientId, path);
   }
   
   app.get('/events/:requestId', eventsHandler);
@@ -76,3 +93,25 @@ function eventsHandler(request, response, next) {
   
   app.post('/fact/:requestId', addFact);
 
+/**
+ * function to tail contents of a file to a client, client is identified by clientId from clientMap, filename is Test_${clientId}.log, End the stream when file returns string ==END==
+ */
+async function tailFile(clientId, path) {
+    // const filename = `Test_${clientId}.log`;
+    if (!fs.existsSync(path)) {
+      return;
+    }
+    const fileStream = fs.createReadStream(path)
+    const client = clientMap.get(clientId);
+    fileStream.on('data', (chunk) => {
+      console.log('chunk', new Buffer(chunk).toString('utf8'));
+      client.response.write(`data: ${chunk}\n\n`);
+    });
+    fileStream.on('end', () => {
+      client.response.write(`data: {"info":"==END==","source":"Anas"}\n\n`);
+      client.response.end();
+    });
+
+    // read  from file $path line by line
+
+}
