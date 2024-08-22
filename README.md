@@ -1,8 +1,14 @@
 * Start server:
-  * ```npm run dev```
+  * ```
+    cd sse-server
+    npm run dev
+    ```
 
 * Start client:
-  * ```npm start```
+  * ```
+    cd sse-client
+    npm start
+    ```
 
 * Push messages:
 ```
